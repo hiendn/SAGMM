@@ -36,7 +36,6 @@ double norm_HD(arma::rowvec y, arma::rowvec mu, arma::mat sigma)
     return f;
 }
 
-//'@export
 // [[Rcpp::export]]
 Rcpp::List main_loop_C(int Number, int Groups, arma::vec PISTAR_O, arma::mat MU_O, 
                        arma::vec LAMBDA_O, arma::vec GAMMA, arma::mat& X,

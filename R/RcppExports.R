@@ -13,7 +13,6 @@ norm_HD <- function(y, mu, sigma) {
     .Call('_SAGMM_norm_HD', PACKAGE = 'SAGMM', y, mu, sigma)
 }
 
-#'@export
 main_loop_C <- function(Number, Groups, PISTAR_O, MU_O, LAMBDA_O, GAMMA, X, Dimensions, SIGMA) {
     .Call('_SAGMM_main_loop_C', PACKAGE = 'SAGMM', Number, Groups, PISTAR_O, MU_O, LAMBDA_O, GAMMA, X, Dimensions, SIGMA)
 }

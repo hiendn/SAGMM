@@ -7,6 +7,17 @@ gainFactors <- function(Number, BURNIN) {
     return(GAMMA)
 }
 
+#' Data for simulations.
+#' 
+#' @description  Wrapper for MixSim
+#' @param Groups Number of mixture components. Default 5.
+#' @param Dimensions number of Dimensions. Default 5.
+#' @param Number number of samples. Default 10^4.
+#' @return List of results: X, Y, simobject.
+#' @examples
+#' sims<-generateSimData(Groups=10, Dimensions=10, Number=10^4)
+#' sims<-generateSimData()
+#'
 #'@export
 generateSimData<-function(Groups=5, Dimensions=5, Number=10^4){
     MS <- MixSim::MixSim(BarOmega=0.01,K=Groups,p=Dimensions,PiLow=(0.1/Groups)) # Simulation code
@@ -78,16 +89,27 @@ main_loop_R<-function(Number,Groups, PISTAR_O, MU_O, LAMBDA_O, GAMMA, X, Dimensi
 }
 
 
-# BURNIN <- 5 # Ratio of observations to use as a burn in before algorithm begins
-# Groups <- 5 # Number of mixture components
-# Dimensions <- 5 # Dimensionality of the problem
-# Number <- 10000 # Number of observations
-
+#' Clustering via Stochastic Approximation and Gaussian Mixture Models
+#' 
+#' @description  Fit a GMM with SA. 
+#' @param X numeric maxtrix of the data.
+#' @param Y True classes.
+#' @param MS MixSim Simulation object.
+#' @param BURNIN Ratio of observations to use as a burn in before algorithm begins.
+#' @param Groups Number of mixture components.
+#' @param kstart number of kmeans starts to initialise.
+#' @param mode for testing "C" uses C++, "R" uses R code.
+#' @param plot If TRUE generates a plot of the clustering.
+#' @return List of results:
+#' @examples
+#' sims<-generateSimData(Groups=10, Dimensions=10, Number=10^4)
+#' res1<-SAGMMFit(sims$X, sims$Y, sims$MS, mode="C")
+#'
 #'@export
 SAGMMFit<-function(X, Y, MS,  BURNIN=5, Groups= 5, kstart=10, mode = "C", plot=F){
 
-    Number<-nrow(X)
-    Dimensions <-ncol(X)
+    Number<-nrow(X) # N observations
+    Dimensions <-ncol(X) #dim of data
     
     ### Initialize Algorithm
     KM <- suppressWarnings(stats::kmeans(X[1:round(Number/BURNIN),],Groups,nstart=kstart)) # Use K means on burnin sample
