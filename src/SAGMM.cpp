@@ -72,24 +72,17 @@ Rcpp::List main_loop_C(int Number, int Groups, arma::vec PISTAR_O, arma::mat MU_
         // ### Tau # this is the component/overall_distribution that goes at the start of each gradient component
         LAMBDASQ = 0.5*arma::pow(LAMBDA,2.0);
    
-
         for(int gg=0; gg< Groups; gg++) {
             Tau(gg) = PIvec(gg)*norm_HD(X.row(ii), MU.row(gg), EYE*(LAMBDASQ(gg)));
         }
+        
         Tau = Tau / sum(Tau);
 
         LAMBDA_P = arma::pow(LAMBDA_O,2.0);
-
-        for(int gg=0; gg< Groups; gg++) {
-            MU.row(gg) = MU_O.row(gg) + GAMMA(gg)* Tau(gg)*2/ LAMBDA_P(gg)*(X.row(ii)-MU_O.row(gg));
-        }
-
         LAMBDASTAR = arma::log(LAMBDA);
-
-        // Sigma
-
         
         for(int gg=0; gg< Groups; gg++) {
+            MU.row(gg) = MU_O.row(gg) + GAMMA(gg)* Tau(gg)*2/ LAMBDA_P(gg)*(X.row(ii)-MU_O.row(gg));
             LAMBDASTAR(gg) = LAMBDASTAR(gg) - GAMMA(ii)*Tau(gg)*(Dimensions-(2.0/LAMBDA_P(gg))*arma::dot(MU_O.row(gg) - X.row(ii), MU_O.row(gg) - X.row(ii)));
         }
      
@@ -117,10 +110,7 @@ Rcpp::List main_loop_C(int Number, int Groups, arma::vec PISTAR_O, arma::mat MU_
         LAMBDA_O = LAMBDA;
         MU_O = MU;
         PISTAR_O = PISTAR;
-        
-        
-        
-      
+ 
     }
 
     PIvec = arma::exp(PISTAR)/arma::sum(arma::exp(PISTAR));
