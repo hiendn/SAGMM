@@ -191,7 +191,7 @@ SAGMMFit<-function(X, Y, MS,  BURNIN=5, Groups= 5, kstart=10, mode = "C", plot=F
     ARI3<-adjustedRandIndex(KM$cluster,Y)
     pi <- sort(PI)
     
-    retList <-list(Cluster=Cluster, plot=p1, l2=l2, S=S, ARI1 = ARI1,ARI2 = ARI2, KM=KM, ARI3=ARI3, pi=pi, MS=MS, tau=TauMAT)
+    retList <-list(Cluster=Cluster, plot=p1, l2=l2, S=S, ARI1 = ARI1,ARI2 = ARI2, KM=KM, ARI3=ARI3, pi=pi, MS=MS, tau=TauMAT, fit=results)
     
     return(retList)
 }
