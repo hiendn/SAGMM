@@ -1,5 +1,15 @@
 #' @import stats MixSim mvtnorm mclust lowmemtkmeans
 
+
+
+
+#' Return GAMMA
+#' 
+#' @description  Gain factors
+#' @param Number Number
+#' @param BURNIN BURNIN.
+#' @return GAMMA
+#'@export
 gainFactors <- function(Number, BURNIN) {
     # Make a sequence of gain factors
     GAMMA <- c(rep(log(Number)/(Number),round(Number/BURNIN)),
