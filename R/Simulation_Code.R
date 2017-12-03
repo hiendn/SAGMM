@@ -2,21 +2,6 @@
 
 
 
-
-#' Return GAMMA
-#' 
-#' @description  Gain factors
-#' @param Number Number
-#' @param BURNIN BURNIN.
-#' @return GAMMA
-#'@export
-gainFactors <- function(Number, BURNIN) {
-    # Make a sequence of gain factors
-    GAMMA <- c(rep(log(Number)/(Number),round(Number/BURNIN)),
-               rep(1/Number,Number-round(Number/BURNIN))) 
-    return(GAMMA)
-}
-
 #' Data for simulations.
 #' 
 #' @description  Wrapper for MixSim
@@ -29,8 +14,8 @@ gainFactors <- function(Number, BURNIN) {
 #' sims<-generateSimData()
 #'
 #'@export
-generateSimData<-function(Groups=5, Dimensions=5, Number=10^4){
-    MS <- MixSim::MixSim(BarOmega=0.01,K=Groups,p=Dimensions,PiLow=(0.1/Groups)) # Simulation code
+generateSimData<-function(Groups=5, Dimensions=5, Number=10^4,BAR=0.01){
+    MS <- MixSim::MixSim(BarOmega=BAR,K=Groups,p=Dimensions,PiLow=(0.1/Groups)) # Simulation code
     Z <- MixSim::simdataset(n=Number,Pi=MS$Pi,Mu=MS$Mu,S=MS$S) # More simulation code, look at package vignette
     X <- Z[[1]] # Extract features
     Y <- Z[[2]] # Extract Labels
