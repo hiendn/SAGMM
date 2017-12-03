@@ -3,7 +3,6 @@
 export(SAGMMFit)
 export(gainFactors)
 export(generateSimData)
-import(GAMMA)
 import(MixSim)
 import(Return)
 import(lowmemtkmeans)
