@@ -116,94 +116,66 @@ main_loop_R<-function(Number,Groups, PISTAR_O, MU_O, LAMBDA_O, GAMMA, X, Dimensi
 #' res1<-SAGMMFit(sims$X, sims$Y, sims$MS, mode="C")
 #'
 #'@export
-SAGMMFit<-function(X, Y, MS,  BURNIN=5, Groups= 5, kstart=10, mode = "C", plot=F){
-
-    Number<-nrow(X) # N observations
-    Dimensions <-ncol(X) #dim of data
-    
-    ### Initialize Algorithm
-    KM <- suppressWarnings(stats::kmeans(X[1:round(Number/BURNIN),],Groups,nstart=kstart)) # Use K means on burnin sample
-    MU <- KM[[2]] # Get initial MU
-    LAMBDA <- rep(max(sqrt(KM$withinss/KM$size)),Groups) # Get initial lambda
-    SIGMA <- list() # Make sigma from Lambda
-    SIGMA_C<-array(0,c(Dimensions,Dimensions,Groups))
-    
+SAGMMFit<-<- function (X, Y, BURNIN = 10, Groups = 5, kstart = 10, mode = "C") 
+{
+  Number <- nrow(X)
+  Dimensions <- ncol(X)
+  KM <- suppressWarnings(stats::kmeans(X[1:round(Number/BURNIN), 
+                                         ], Groups, nstart = kstart))
+  MU <- KM[[2]]
+  LAMBDA <- rep(max(sqrt(KM$withinss/KM$size)), Groups)
+  SIGMA <- list()
+  SIGMA_C <- array(0, c(Dimensions, Dimensions, Groups))
+  for (gg in 1:Groups) {
+    SIGMA[[gg]] <- diag(Dimensions) * LAMBDA[gg]^2/2
+    SIGMA_C[, , gg] <- SIGMA[[gg]]
+  }
+  PI <- rep(1/Groups, Groups)
+  PISTAR <- rep(0, Groups)
+  for (it in 1:100) {
+    for (gg in 1:(Groups - 1)) {
+      PISTAR[gg] <- log((1/PI[gg] - 1)^-1 * sum(exp(PISTAR[-gg])))
+    }
+  }
+  GAMMA <- log(Number)/Number*c(rep(1,
+                                    round(Number/BURNIN)),
+                                1/(1+(1:(Number-round(Number/BURNIN))/
+                                        (Number-round(Number/BURNIN)))))
+  LAMBDA_O <- LAMBDA
+  MU_O <- MU
+  PISTAR_O <- PISTAR
+  if (mode == "C") {
+    results <- main_loop_C(Number, Groups, PISTAR_O, MU_O, 
+                           LAMBDA_O, GAMMA, X, Dimensions, SIGMA_C)
+    TauMAT <- results$Tau
+    PI <- results$PI
+    MU <- results$MU
+    SIGMA <- list()
     for (gg in 1:Groups) {
-      SIGMA[[gg]] <- diag(Dimensions)*LAMBDA[gg]^2/2
-      SIGMA_C[,,gg]<-SIGMA[[gg]]
+      SIGMA[[gg]] <- diag(Dimensions) * results$LAMBDA[gg]^2/2
     }
-    
-    PI <- rep(1/Groups,Groups) # Get initial PI
-    PISTAR <- rep(0,Groups) # Solve for initial Pistar
-    for (it in 1:100) {
-      for (gg in 1:(Groups-1)) {
-        PISTAR[gg] <- log((1/PI[gg]-1)^-1*sum(exp(PISTAR[-gg])))
+  }
+  if (mode == "R") {
+    results <- main_loop_R(Number, as.integer(Groups), PISTAR_O, 
+                           MU_O, LAMBDA_O, GAMMA, X, Dimensions, SIGMA)
+    PI <- results$PI
+    MU <- results$MU
+    SIGMA <- list()
+    for (gg in 1:Groups) {
+      SIGMA[[gg]] <- diag(Dimensions) * results$LAMBDA[gg]^2/2
+    }
+    TauMAT <- matrix(NA, Number, Groups)
+    for (ii in 1:Number) {
+      Tau <- c()
+      for (gg in 1:Groups) {
+        Tau[gg] <- log(PI[gg]) + dmvnorm(X[ii, ], MU[gg, 
+                                                     ], SIGMA[[gg]]/2, log = T)
       }
+      TauMAT[ii, ] <- Tau
     }
-
-    GAMMA<-gainFactors(Number, BURNIN)
-
-    ### Old stuff
-    LAMBDA_O <- LAMBDA # old value of lambda
-    MU_O <- MU # Old value of Mu
-    PISTAR_O <- PISTAR # Old value of Pistar
-  
-   
-    #MAIN ACTION HERE
-    if(mode=="C"){
-        results<-main_loop_C(Number,Groups, PISTAR_O, MU_O, LAMBDA_O, GAMMA, X, Dimensions, SIGMA_C)
-        
-        TauMAT<-results$Tau
-        PI <-results$PI
-        MU <-results$MU
-        
-        SIGMA <-list()
-        for (gg in 1:Groups) {
-            SIGMA[[gg]] <- diag(Dimensions)*results$LAMBDA[gg]^2/2
-        }
-    }
-    
-    if(mode=="R"){
-        results<-main_loop_R(Number,as.integer(Groups), PISTAR_O, MU_O, LAMBDA_O, GAMMA, X, Dimensions, SIGMA)
-    
-    
-        PI <-results$PI
-        MU <-results$MU
-        
-        SIGMA <-list()
-        for (gg in 1:Groups) {
-            SIGMA[[gg]] <- diag(Dimensions)*results$LAMBDA[gg]^2/2
-        }
-    
-        ### Bunch of results stuff
-        TauMAT <- matrix(NA,Number,Groups)
-        for (ii in 1:Number) {
-            Tau <- c()
-            for (gg in 1:Groups) {
-                Tau[gg] <- log(PI[gg]) + dmvnorm(X[ii,],MU[gg,],SIGMA[[gg]]/2,log=T)
-            }
-            TauMAT[ii,] <- Tau
-        }
-    }
-    
-    Cluster <- apply(TauMAT,1,which.max)
-    if(plot){
-        p1<-plot(as.data.frame(X),col=Cluster,pch=Y)
-    }else{
-        p1<-NA
-    }
-    
-    l2<-LAMBDA^2
-    S<-MS$S
-    ARI1<-adjustedRandIndex(lowmemtkmeans::nearest_cluster(X,KM$centers),Y)
-    ARI2<-adjustedRandIndex(Cluster,Y)
-    KM <- kmeans(X,Groups,nstart=10)
-    ARI3<-adjustedRandIndex(KM$cluster,Y)
-    pi <- sort(PI)
-    
-    retList <-list(Cluster=Cluster, plot=p1, l2=l2, S=S, ARI1 = ARI1,ARI2 = ARI2, KM=KM, ARI3=ARI3, pi=pi, MS=MS, tau=TauMAT, fit=results)
-    
-    return(retList)
+  }
+  retList <- list(fit = results)
+  return(retList)
 }
 
 
