@@ -101,7 +101,7 @@ main_loop_R<-function(Number,Groups, PISTAR_O, MU_O, LAMBDA_O, GAMMA, X, Dimensi
 #' res1<-SAGMMFit(sims$X, sims$Y, sims$MS, mode="C")
 #'
 #'@export
-SAGMMFit<-<- function (X, Y, BURNIN = 10, Groups = 5, kstart = 10, mode = "C") 
+SAGMMFit <- function (X, Y, BURNIN = 10, Groups = 5, kstart = 10, mode = "C") 
 {
   Number <- nrow(X)
   Dimensions <- ncol(X)
